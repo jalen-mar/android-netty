@@ -1,0 +1,26 @@
+plugins {
+    id 'com.android.library'
+    id 'com.github.dcendents.android-maven'
+}
+
+android {
+    compileSdkVersion 30
+    buildToolsVersion "30.0.2"
+    defaultConfig {
+        minSdkVersion 21
+        targetSdkVersion 30
+        versionCode 100
+        versionName "1.0.0"
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    api 'io.netty:netty-all:4.1.58.Final'
+    api 'com.alibaba:fastjson:1.2.75'
+    implementation 'com.github.jalen-mar:android-boot:1.0.5-release'
+}
