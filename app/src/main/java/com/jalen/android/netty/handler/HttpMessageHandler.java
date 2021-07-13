@@ -4,6 +4,7 @@ import android.util.ArrayMap;
 import android.util.Log;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.jalen.android.bootstrap.reflect.MethodUtil;
 import com.jalen.android.netty.exception.HttpException;
 import com.jalen.android.netty.exception.HttpServerException;
@@ -20,6 +21,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -154,7 +156,7 @@ public class HttpMessageHandler extends SimpleChannelInboundHandler<FullHttpRequ
         Action action = HttpControllerHandler.findController(req.uri(), req.method().toString());
         if (action != null) {
             try {
-                Map<String, String> attributes = findAttributes(req);
+                Map<String, Object> attributes = findAttributes(req);
                 if ((action.actionMethod).getParameterTypes().length == 0) {
                     return MethodUtil.invoke(action.actionObject, action.actionMethod);
                 } else {
@@ -171,28 +173,36 @@ public class HttpMessageHandler extends SimpleChannelInboundHandler<FullHttpRequ
         }
     }
 
-    private Map<String, String> findAttributes(FullHttpRequest req) throws IOException {
-        HttpMethod method = req.method();
-        Map<String, String> parmMap = new ArrayMap<>();
+    private Map<String, Object> findAttributes(FullHttpRequest request) throws IOException {
+        HttpMethod method = request.method();
+        Map<String, Object> params = new ArrayMap<>();
         if (HttpMethod.GET == method) {
-            QueryStringDecoder decoder = new QueryStringDecoder(req.uri());
+            QueryStringDecoder decoder = new QueryStringDecoder(request.uri());
             Iterator<Map.Entry<String, List<String>>> iterator = decoder.parameters().entrySet().iterator();
             while (iterator.hasNext()) {
                 Map.Entry<String, List<String>> entry = iterator.next();
-                parmMap.put(entry.getKey(), entry.getValue().get(0));
+                params.put(entry.getKey(), entry.getValue().get(0));
             }
         } else if (HttpMethod.POST == method) {
-            HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(req);
-            decoder.offer(req);
-            List<InterfaceHttpData> parmList = decoder.getBodyHttpDatas();
-            for (InterfaceHttpData parm : parmList) {
-                Attribute data = (Attribute) parm;
-                parmMap.put(data.getName(), data.getValue());
+            String contentType = request.headers().get("Content-Type");
+            contentType = contentType == null ? "" : contentType;
+            if (contentType.contains("application/json")) {
+                ByteBuf buffer = request.content();
+                String value = buffer.toString(CharsetUtil.UTF_8);
+                params.put("json", JSON.parseObject(value, JSONObject.class));
+            } else {
+                HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(request);
+                decoder.offer(request);
+                List<InterfaceHttpData> paramArray = decoder.getBodyHttpDatas();
+                for (InterfaceHttpData parameter : paramArray) {
+                    Attribute data = (Attribute) parameter;
+                    params.put(data.getName(), data.getValue());
+                }
             }
         } else {
             throw new HttpException(404, "抱歉，您访问的资源不存在.");
         }
-        return parmMap;
+        return params;
     }
 
     public static class Action {
