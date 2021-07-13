@@ -160,7 +160,7 @@ public class HttpMessageHandler extends SimpleChannelInboundHandler<FullHttpRequ
                 if ((action.actionMethod).getParameterTypes().length == 0) {
                     return MethodUtil.invoke(action.actionObject, action.actionMethod);
                 } else {
-                    return MethodUtil.invoke(action.actionObject, action.actionMethod, attributes);
+                    return MethodUtil.invoke(action.actionObject, action.actionMethod, attributes.size() == 1 ? attributes.get(0) : attributes);
                 }
             } catch (Exception e) {
                 if (e instanceof HttpException) {
