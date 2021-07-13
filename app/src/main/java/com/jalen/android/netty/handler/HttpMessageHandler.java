@@ -156,11 +156,11 @@ public class HttpMessageHandler extends SimpleChannelInboundHandler<FullHttpRequ
         Action action = HttpControllerHandler.findController(req.uri(), req.method().toString());
         if (action != null) {
             try {
-                Map<String, Object> attributes = findAttributes(req);
+                Object attributes = findAttributes(req);
                 if ((action.actionMethod).getParameterTypes().length == 0) {
                     return MethodUtil.invoke(action.actionObject, action.actionMethod);
                 } else {
-                    return MethodUtil.invoke(action.actionObject, action.actionMethod, attributes.size() == 1 ? attributes.get(0) : attributes);
+                    return MethodUtil.invoke(action.actionObject, action.actionMethod, attributes);
                 }
             } catch (Exception e) {
                 if (e instanceof HttpException) {
@@ -173,9 +173,9 @@ public class HttpMessageHandler extends SimpleChannelInboundHandler<FullHttpRequ
         }
     }
 
-    private Map<String, Object> findAttributes(FullHttpRequest request) throws IOException {
+    private Object findAttributes(FullHttpRequest request) throws IOException {
         HttpMethod method = request.method();
-        Map<String, Object> params = new ArrayMap<>();
+        ArrayMap<String, Object> params = new ArrayMap<>();
         if (HttpMethod.GET == method) {
             QueryStringDecoder decoder = new QueryStringDecoder(request.uri());
             Iterator<Map.Entry<String, List<String>>> iterator = decoder.parameters().entrySet().iterator();
@@ -202,7 +202,7 @@ public class HttpMessageHandler extends SimpleChannelInboundHandler<FullHttpRequ
         } else {
             throw new HttpException(404, "抱歉，您访问的资源不存在.");
         }
-        return params;
+        return params.size() == 1 ? params.get(params.keyAt(0)) : params;
     }
 
     public static class Action {
