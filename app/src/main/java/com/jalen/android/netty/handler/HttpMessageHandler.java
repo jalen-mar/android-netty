@@ -187,7 +187,7 @@ public class HttpMessageHandler extends SimpleChannelInboundHandler<FullHttpRequ
             String contentType = request.headers().get("Content-Type");
             contentType = contentType == null ? "" : contentType;
             if (contentType.contains("application/json")) {
-                params.put("json", JSON.parseObject(request.content().toString(CharsetUtil.UTF_8), JSONObject.class));
+               params.put("json", JSON.parse(request.content().toString(CharsetUtil.UTF_8)));
             } else {
                 HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(request);
                 List<InterfaceHttpData> paramArray = decoder.getBodyHttpDatas();

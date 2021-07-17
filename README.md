@@ -1,3 +1,3 @@
-#bootstrap for android
+#netty for android
 
-**scaffold 是一套android端 「手脚架」**
+**netty 是一套基于netty 「手脚架」**
