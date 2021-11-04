@@ -72,8 +72,8 @@ public class HttpMessageHandler extends SimpleChannelInboundHandler<FullHttpRequ
             content = errorMessage = e.getMessage();
         }
 
-        if (content == null || content instanceof String) {
-            sendMessage(ctx, req, status, (String) content, errorMessage);
+        if (content == null || content instanceof String || content instanceof Boolean || content instanceof Number || content instanceof Character) {
+            sendMessage(ctx, req, status, content == null ? null : content.toString(), errorMessage);
             return;
         }
 
